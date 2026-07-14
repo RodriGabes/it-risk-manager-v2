@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ITRM v2</title>
+    <style>
+
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+            background:#f4f4f4;
+            margin:40px;
+        }
+        .success{
+            background:#d4edda;
+            color:#155724;
+            border:1px solid #c3e6cb;
+            padding:12px;
+            margin-bottom:20px;
+            border-radius:5px;
+}
+        .container{
+            max-width:700px;
+            margin:auto;
+            background:white;
+            padding:25px;
+            border-radius:8px;
+            box-shadow:0 0 8px rgba(0,0,0,.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4e4e4e;
+            margin-bottom: 10px;
+        }
+
+        label{
+            display:block;
+            margin-top:15px;
+            font-weight:bold;
+        }
+
+        input, select, textarea{
+            width:100%;
+            padding:8px;
+            margin-top:5px;
+            box-sizing:border-box;
+        }
+
+        textarea{
+            resize:vertical;
+            min-height:120px;
+        }
+
+        button{
+            margin-top:25px;
+            padding:10px 20px;
+            cursor:pointer;
+        }
+
+        .hidden{
+            display:none;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Cadastrar Objeto</h1>
+{% if mensagem %}
+<div class="success">
+    {{ mensagem }}
+</div>
+{% endif %}
+<form action="/new" method="POST">
+
+<h2>Tipo</h2>
+
+<select id="tipo" name="tipo" required>
+    <option value="">Selecione...</option>
+    <option value="ativo">Ativo</option>
+    <option value="vulnerabilidade">Vulnerabilidade</option>
+    <option value="setor">Setor</option>
+    <option value="responsavel">Responsável</option>
+</select>
+
+<div id="campos"></div>
+
+<button type="submit">Cadastrar</button>
+<button onclick="window.location.href='/'">Voltar</button>
+</form>
+
+</div>
+
+
+<script>
+
+const campos = document.getElementById("campos");
+
+document.getElementById("tipo").addEventListener("change", atualizarCampos);
+
+function atualizarCampos(){
+
+    const tipo = document.getElementById("tipo").value;
+
+    let html = "";
+
+    if(tipo === "")
+    {
+        campos.innerHTML = "";
+        return;
+    }
+
+    html += `
+        <label>Nome</label>
+        <input type="text" name="nome" required>
+    `;
+
+    if(tipo === "ativo")
+    {
+
+        html += `
+
+        <label>ID do Setor</label>
+        <input type="number" name="id_setor" min="1" required>
+
+        <label>Categoria</label>
+
+        <select name="categoria" required>
+
+            <option value="1">1 - NOTEBOOK</option>
+            <option value="2">2 - SERVIDOR</option>
+            <option value="3">3 - ROTEADOR</option>
+            <option value="4">4 - SOFTWARE LICENCIADO</option>
+            <option value="5">5 - APLICAÇÃO WEB</option>
+            <option value="6">6 - BANCO DE DADOS</option>
+            <option value="8">8 - IMPRESSORA DE REDE</option>
+            <option value="9">9 - ESTAÇÃO DE TRABALHO</option>
+
+        </select>
+
+        <label>ID do Responsável</label>
+        <input type="number" name="id_responsavel" min="1" required>
+
+        `;
+
+    }
+
+    else if(tipo === "vulnerabilidade")
+    {
+
+        html += `
+
+        <label>Severidade</label>
+
+        <select name="severidade" required>
+
+            <option value="0">0 - SEGURO</option>
+            <option value="1">1 - POUCO IMPORTANTE</option>
+            <option value="2">2 - IMPORTANTE</option>
+            <option value="3">3 - MUITO IMPORTANTE</option>
+            <option value="4">4 - CRÍTICO</option>
+
+        </select>
+
+        <label>ID do Ativo</label>
+        <input type="number" name="id_ativo" min="1" required>
+
+        <label>Status</label>
+
+        <select name="status" required>
+            <option value="EM ABERTO">EM ABERTO</option>
+            <option value="EM TRATAMENTO">EM TRATAMENTO</option>
+            <option value="CORRIGIDO">CORRIGIDO</option>
+            <option value="RISCO ACEITO">RISCO ACEITO</option>
+        </select>
+
+        <label>Descrição</label>
+        <textarea name="descricao" required></textarea>
+
+        `;
+
+    }
+
+    campos.innerHTML = html;
+
+}
+
+</script>
+
+</body>
+</html>

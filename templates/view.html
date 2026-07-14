@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Visualizar Objeto</title>
+<style>
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    background:#f4f4f4;
+    margin:40px;
+}
+.container{
+    width:700px;
+    margin:auto;
+    background:white;
+    padding:25px;
+    border-radius:8px;
+    box-shadow:0 0 8px rgba(0,0,0,.2);
+}
+h1{
+    margin-top:0;
+}
+label{
+    display:block;
+    margin-top:15px;
+    font-weight:bold;
+}
+input,select,textarea{
+
+    width:100%;
+    padding:8px;
+    margin-top:5px;
+    box-sizing:border-box;
+
+}
+textarea{
+
+    resize:vertical;
+    min-height:120px;
+
+}
+button{
+
+    margin-top:20px;
+    margin-right:10px;
+    padding:10px 18px;
+    cursor:pointer;
+
+}
+.success{
+
+    margin-top:20px;
+    background:#d4edda;
+    color:#155724;
+    border:1px solid #c3e6cb;
+    padding:10px;
+    border-radius:5px;
+    display:none;
+
+}
+.error{
+
+    margin-top:20px;
+    background:#f8d7da;
+    color:#721c24;
+    border:1px solid #f5c6cb;
+    padding:10px;
+    border-radius:5px;
+    display:none;
+
+}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Objeto</h1>
+<div id="success" class="success"></div>
+<div id="error" class="error"></div>
+<form id="objectForm">
+<label>ID</label>
+<input id="id" disabled>
+<label>Tabela</label>
+<input id="table" disabled>
+<div id="fields"></div>
+<button type="button" onclick="salvar()">
+Salvar Alterações
+</button>
+<button type="button" onclick="deletar()">
+Excluir
+</button>
+</form>
+<br>
+<button onclick="window.location='/search'">
+Voltar para Busca
+</button>
+</div>
+<script>
+let objeto={};
+async function carregar(){
+
+    const parametros=new URLSearchParams(window.location.search);
+    const tabela=parametros.get("t");
+    const id=parametros.get("id");
+
+    const resposta=await fetch(`/api/view?t=${tabela}&id=${id}`);
+
+    objeto=await resposta.json();
+
+    document.getElementById("id").value=objeto.id;
+    document.getElementById("table").value=objeto.tabela;
+
+    let html="";
+
+for (const campo in objeto) {
+
+    if (campo == "id" || campo == "tabela")
+        continue;
+
+    html += `<label>${campo}</label>`;
+
+    if (campo == "categoria") {
+
+        html += `
+        <select id="categoria">
+            <option value="1">1 - NOTEBOOK</option>
+            <option value="2">2 - SERVIDOR</option>
+            <option value="3">3 - ROTEADOR</option>
+            <option value="4">4 - SOFTWARE LICENCIADO</option>
+            <option value="5">5 - APLICAÇÃO WEB</option>
+            <option value="6">6 - BANCO DE DADOS</option>
+            <option value="8">8 - IMPRESSORA DE REDE</option>
+            <option value="9">9 - ESTAÇÃO DE TRABALHO</option>
+        </select>
+        `;
+
+    }
+    else if (campo == "severidade") {
+
+        html += `
+        <select id="severidade">
+            <option value="0">0 - SEGURO</option>
+            <option value="1">1 - POUCO IMPORTANTE</option>
+            <option value="2">2 - IMPORTANTE</option>
+            <option value="3">3 - MUITO IMPORTANTE</option>
+            <option value="4">4 - CRÍTICO</option>
+        </select>
+        `;
+
+    }
+    else if (campo == "status") {
+
+        html += `
+        <select id="status">
+            <option value="CORRIGIDO">CORRIGIDO</option>
+            <option value="EM ABERTO">EM ABERTO</option>
+            <option value="EM TRATAMENTO">EM TRATAMENTO</option>
+            <option value="RISCO ACEITO">RISCO ACEITO</option>
+        </select>
+        `;
+
+    }
+    else {
+
+        html += `
+        <input id="${campo}" value="${objeto[campo]}">
+        `;
+
+    }
+
+}
+
+document.getElementById("fields").innerHTML = html;
+
+if (objeto.categoria !== undefined)
+    document.getElementById("categoria").value = objeto.categoria;
+
+if (objeto.severidade !== undefined)
+    document.getElementById("severidade").value = objeto.severidade;
+
+if (objeto.status !== undefined)
+    document.getElementById("status").value = objeto.status;
+
+}
+async function salvar() {
+    for (const campo in objeto) {
+
+        if (campo == "id" || campo == "tabela")
+            continue;
+
+        objeto[campo] = document.getElementById(campo).value;
+    }
+    const resposta = await fetch("/view", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(objeto)
+    });
+    const retorno = await resposta.json();
+    mostrarMensagem(retorno.mensagem, retorno.sucesso);
+}
+async function deletar() {
+    if (!confirm("Deseja realmente excluir este objeto? Suas dependências também serão excluídas"))
+        return;
+    const resposta = await fetch("/view", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            tabela: objeto.tabela,
+            id: objeto.id
+        })
+    });
+    const retorno = await resposta.json();
+    mostrarMensagem(retorno.mensagem, retorno.sucesso);
+    if (retorno.sucesso) {
+        setTimeout(() => {
+            window.location = "/search";
+        }, 1000);
+    }
+}
+function mostrarMensagem(msg,sucesso){
+    const ok=document.getElementById("success");
+    const erro=document.getElementById("error");
+    ok.style.display="none";
+    erro.style.display="none";
+    if(sucesso){
+        ok.innerHTML=msg;
+        ok.style.display="block";
+    }
+    else{
+        erro.innerHTML=msg;
+        erro.style.display="block";
+    }
+}
+carregar();
+</script>
+</body>
+</html>
