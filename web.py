@@ -154,5 +154,7 @@ def api_view():
     objeto = bd.busca_id(tabela, id)
     return conversor_view(objeto,tabela)
 
+os.makedirs("data", exist_ok=True)
+
 if __name__ == "__main__":
     web.run(debug=True)
